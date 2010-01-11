@@ -1,52 +1,46 @@
-AnyEvent-Worker
+NAME
+    AnyEvent::Worker - The great new AnyEvent::Worker!
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+VERSION
+    Version 0.01
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+SYNOPSIS
+        use AnyEvent 5;
+        use AnyEvent::Worker;
 
+        my $worker1 = AnyEvent::Worker->new( [ 'Actual::Worker::Class' => @init_args ] );
+        my $worker2 = AnyEvent::Worker->new( sub { return "Cb 1 @_"; } );
 
-INSTALLATION
+        # Invoke method `test' on Actual::Worker::Class with arguments @args
+        $worker1->do( test => @args , sub {
+        return warn "Request died: $@" if $@;
+        warn "Received response: @_";
+        });
 
-To install this module, run the following commands:
+        # Just call callback, passed to worker2 with arguments @args
+        $worker2->do( @args , sub {
+        return warn "Request died: $@" if $@;
+        warn "Received response: @_";
+        });
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+METHODS
+    $worker->on_error ($cb->($worker, $filename, $line, $fatal))
+        Sets (or clears, with "undef") the "on_error" handler.
 
-SUPPORT AND DOCUMENTATION
+    $worker->timeout ($seconds)
+        Sets (or clears, with "undef") the database timeout. Useful to
+        extend the timeout when you are about to make a really long query.
 
-After installing, you can find documentation for this module with the
-perldoc command.
+    $worker->do ( @args, $cb->( $worker, @response ) )
+        Executes worker code and execure the callback, when response is
+        ready
 
-    perldoc AnyEvent::Worker
+AUTHOR
+    Mons Anderson, "<mons at cpan.org>"
 
-You can also look for information at:
+COPYRIGHT & LICENSE
+    Copyright 2009 Mons Anderson, all rights reserved.
 
-    RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=AnyEvent-Worker
-
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/AnyEvent-Worker
-
-    CPAN Ratings
-        http://cpanratings.perl.org/d/AnyEvent-Worker
-
-    Search CPAN
-        http://search.cpan.org/dist/AnyEvent-Worker/
-
-
-COPYRIGHT AND LICENCE
-
-Copyright (C) 2009 Mons Anderson
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
 

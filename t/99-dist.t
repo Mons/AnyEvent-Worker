@@ -2,11 +2,11 @@
 
 use lib::abs '../lib';
 use Test::More;
-use Test::Dist;
+use Test::If 'Test::Dist';
 use Test::NoWarnings;
 chdir lib::abs::path('..');
 
-dist_ok(
+Test::Dist::dist_ok(
 	'+' => 1,
 	skip => [qw(prereq)],
 	kwalitee => {

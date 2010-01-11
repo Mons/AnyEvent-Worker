@@ -10,8 +10,7 @@ use AnyEvent::Worker;
 sub new {
 	my $pkg = shift;
 	my $count = shift;
-	my @args = @_;
-	my $self = bless { @_ }, $pkg;
+	my $self = bless {}, $pkg;
 	$self->{pool} = [
 		map { AnyEvent::Worker->new(@_) } 1..$count
 	];

@@ -86,6 +86,7 @@ sub serve_fh($$) {
 				
 				my $req = Storable::thaw substr $rbuf, 4;
 				substr $rbuf, 0, $len + 4, ""; # remove length + request
+				local $@;
 				my $wbuf = eval {
 					++$N;
 					if (ref $WORKER eq 'CODE') {
@@ -98,11 +99,12 @@ sub serve_fh($$) {
 						pack "L/a*", Storable::freeze [ 1, $WORKER->$method(@$req) ];
 					}
 				};
+				warn if $@;
 				$0 = "$O : idle";
 				$wbuf = pack "L/a*", Storable::freeze [ undef, ref $@ ? ("$@->[0]", $@->[1]) : ("$@", 0) ]
 					if $@;
 				
-				#warn "<< response";
+				#print STDERR "<< response\n";
 				for (my $ofs = 0; $ofs < length $wbuf; ) {
 					$ofs += (my $wr = syswrite $fh, substr $wbuf, $ofs
 									or die "unable to write results");
@@ -175,11 +177,11 @@ sub new {
 						$req->[0](@$res);
 					} else {
 						my $cb = shift @$req;
-						local $@ = $res->[1];
-						$@ =~ s{\n$}{};
-						$cb->($self);
-						$self->_error ($res->[1], @$req, $res->[2]) # error, request record, is_fatal
-							if $self; # cb() could have deleted it
+						{
+							local $@ = $res->[1];
+							$@ =~ s{\n$}{};
+							$cb->($self);
+						}
 					}
 					
 					# no more queued requests, so become idle
@@ -187,10 +189,12 @@ sub new {
 						if $self && !@{ $self->{queue} };
 				}
 			
-			} elsif (defined $len) {
+			}
+			elsif (defined $len) {
 				# todo, caller?
 				$self->_error ("unexpected eof", @caller, 1);
-			} elsif ($! != Errno::EAGAIN) {
+			}
+			elsif ($! != Errno::EAGAIN) {
 				# todo, caller?
 				$self->_error ("read error: $!", @caller, 1);
 			}
@@ -236,6 +240,11 @@ sub new {
 	}
 	elsif (defined $pid) {
 		# child
+		$SIG{INT} = 'IGNORE';
+		my $serv_fno = fileno $server;
+		
+		($_ != $serv_fno) && POSIX::close $_ for $^F+1..$FD_MAX;
+		
 		if (ref $cb eq 'CODE'){
 			$WORKER = $cb;
 		}
@@ -244,10 +253,6 @@ sub new {
 			eval qq{ use $class; 1 } or die $@ unless $class->can('new');
 			$WORKER = $class->new(@args);
 		}
-		my $serv_fno = fileno $server;
-		
-		($_ != $serv_fno) && POSIX::close $_
-			for $^F+1..$FD_MAX;
 		serve_fh $server, $VERSION;
 		
 		# no other way on the broken windows platform, even this leaks
@@ -273,18 +278,26 @@ our %TERM;
 sub kill_child {
 	my $self      = shift;
 	my $child_pid = delete $self->{child_pid};
-	#print STDERR "killing $child_pid\n";
+	my $GD = 0;
+	{
+		local $SIG{__WARN__} = sub { $GD = 1 if $_[0] =~ / during global destruction\.\s*$/ };
+		warn 'test';
+	}
+	#print STDERR "killing $child_pid / $GD\n";
 	if ($child_pid) {
 		# send SIGKILL in two seconds
 		$TERM{$child_pid}++;
+		kill 0 => $child_pid and
+		kill TERM => $child_pid or warn "kill $child_pid: $!";
+		return if $GD;
 		# TODO: kill timer
-		my $murder_timer = AnyEvent->timer (
-			after => 2,
-			cb    => sub {
-				kill 9, $child_pid
-					and delete $TERM{$child_pid};
-			},
-		);
+		#my $murder_timer = AnyEvent->timer (
+		#	after => 2,
+		#	cb    => sub {
+		#		kill 9, $child_pid
+		#			and delete $TERM{$child_pid};
+		#	},
+		#);
 		
 		# reap process
 		my $kid_watcher; $kid_watcher = AnyEvent->child (
@@ -294,7 +307,7 @@ sub kill_child {
 				delete $TERM{$child_pid};
 				undef $kid_watcher;
 				# cancel SIGKILL
-				undef $murder_timer;
+				#undef $murder_timer;
 			},
 		);
 		
@@ -306,6 +319,7 @@ sub END {
 	for (keys %TERM) {
 		#print STDERR "END: kill $_\n";
 		# TODO: waitpid
+		kill 0 => $_ and
 		kill KILL => $_ or warn "kill $_ failed: $!";
 	}
 }
@@ -334,7 +348,8 @@ sub _error {
 	
 	if ($self->{on_error}) {
 		$self->{on_error}($self, $filename, $line, $fatal)
-	} else {
+	}
+	 else {
 		die "$error at $filename, line $line\n";
 	}
 }
