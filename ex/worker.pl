@@ -28,6 +28,11 @@ use Guard;
 my $worker1 = AnyEvent::Worker->new( [ ActualWorker => some => 'zzz' ] );
 my $worker2 = AnyEvent::Worker->new( sub { return "Cb 1 @_"; } );
 my $worker3 = AnyEvent::Worker->new( sub { die    "Cb 2 @_"; } );
+my $worker4 = AnyEvent::Worker->new( {
+	class   => 'ActualWorker',
+	new     => 'constructor',
+	args    => [qw(arg1 arg2)],
+} );
 
 my $cv = AE::cv;
 

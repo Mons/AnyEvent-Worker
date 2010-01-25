@@ -6,15 +6,7 @@ use strict;
 }x;
 =head1 NAME
 
-AnyEvent::Worker - The great new AnyEvent::Worker!
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-our $VERSION = '0.01';
+AnyEvent::Worker - Manage blocking task in external process
 
 =head1 SYNOPSIS
 
@@ -23,6 +15,11 @@ our $VERSION = '0.01';
     
     my $worker1 = AnyEvent::Worker->new( [ 'Actual::Worker::Class' => @init_args ] );
     my $worker2 = AnyEvent::Worker->new( sub { return "Cb 1 @_"; } );
+    my $worker3 = AnyEvent::Worker->new( {
+        class   => 'Actual::Worker::Class2',
+        new     => 'create', # alternative constructor
+        args    => [qw(arg1 arg2)],
+    } );
     
     # Invoke method `test' on Actual::Worker::Class with arguments @args
     $worker1->do( test => @args , sub {
@@ -35,6 +32,7 @@ our $VERSION = '0.01';
         return warn "Request died: $@" if $@;
         warn "Received response: @_";
     });
+    
 
 =cut
 
@@ -99,15 +97,14 @@ sub serve_fh($$) {
 						pack "L/a*", Storable::freeze [ 1, $WORKER->$method(@$req) ];
 					}
 				};
-				warn if $@;
+				# warn if $@;
 				$0 = "$O : idle";
 				$wbuf = pack "L/a*", Storable::freeze [ undef, ref $@ ? ("$@->[0]", $@->[1]) : ("$@", 0) ]
 					if $@;
 				
-				#print STDERR "<< response\n";
+				#warn "<< response";
 				for (my $ofs = 0; $ofs < length $wbuf; ) {
-					$ofs += (my $wr = syswrite $fh, substr $wbuf, $ofs
-									or die "unable to write results");
+					$ofs += (my $wr = syswrite $fh, substr $wbuf, $ofs or die "unable to write results");
 				}
 			}
 		}
@@ -136,9 +133,6 @@ sub new {
 	
 	my ($client, $server) = AnyEvent::Util::portable_socketpair
 		or croak "unable to create Anyevent::DBI communications pipe: $!";
-	
-	my %dbi_args = %arg;
-	delete @dbi_args{qw(on_connect on_error timeout exec_server)};
 	
 	my $self = bless \%arg, $class;
 	$self->{fh} = $client;
@@ -250,9 +244,19 @@ sub new {
 		}
 		elsif ( ref $cb eq 'ARRAY') {
 			my ( $class,@args ) = @$cb;
-			eval qq{ use $class; 1 } or die $@ unless $class->can('new');
+			eval qq{ use $class; 1 } or croak($@) unless $class->can('new');
 			$WORKER = $class->new(@args);
 		}
+		elsif ( ref $cb eq 'HASH') {
+			my $class = $cb->{class} or croak "You should define class to construct";
+			my $new = $cb->{new} || 'new';
+			eval qq{ use $class; 1 } or croak($@) unless $class->can($new);
+			$WORKER = $class->$new(@{ $cb->{args} || [] });
+		}
+		else {
+			croak "Bad argument: $cb";
+		}
+		
 		serve_fh $server, $VERSION;
 		
 		# no other way on the broken windows platform, even this leaks
@@ -314,10 +318,9 @@ sub kill_child {
 		close $self->{fh};
 	}
 }
-
 sub END {
 	for (keys %TERM) {
-		#print STDERR "END: kill $_\n";
+        #print STDERR "END: kill $_\n";
 		# TODO: waitpid
 		kill 0 => $_ and
 		kill KILL => $_ or warn "kill $_ failed: $!";
@@ -349,7 +352,7 @@ sub _error {
 	if ($self->{on_error}) {
 		$self->{on_error}($self, $filename, $line, $fatal)
 	}
-	 else {
+	else {
 		die "$error at $filename, line $line\n";
 	}
 }
