@@ -1,9 +1,11 @@
 package AnyEvent::Worker;
 
+use 5.006;
 use common::sense 2;m{
 use warnings;
 use strict;
 }x;
+
 =head1 NAME
 
 AnyEvent::Worker - Manage blocking task in external process
@@ -32,7 +34,36 @@ AnyEvent::Worker - Manage blocking task in external process
         return warn "Request died: $@" if $@;
         warn "Received response: @_";
     });
-    
+
+=head1 CONSTRUCTOR
+
+=head2 new $cb->($req), %args
+
+Simple stateless worker. On any C<do> a sub sill be invoked with C<do> arguments
+
+=head2 new [ Class => @new_args ], %args
+
+Stateful, object-based worker. After fork, Class will we C<use>d, then instantiated with new(@new_args).
+
+First argument to C<do> will be interpreted as object method, rest -- as method arguments.
+
+=head2 new { class => 'Class', args => \@new_args, new => 'constructor_method' }, %args
+
+Same as previous, but allow to pass optional constructor name in C<new> arg
+
+=head2 $args{on_error} = $cb->($worker,$error,$fatal,$file,$line)
+
+When an unexpected error occurs (for ex: child process exited or killed) C<on_error> callback will be invoked
+
+=head1 METHODS
+
+=head2 do @args, $cb->($res)
+
+Only for stateless worker.
+
+=head2 do method => @args, $cb->($res)
+
+Only for stateful worker.
 
 =cut
 
@@ -277,6 +308,7 @@ sub _server_pid {
 	shift->{child_pid}
 }
 
+our %KIDW;
 our %TERM;
 
 sub kill_child {
@@ -294,7 +326,7 @@ sub kill_child {
 		kill 0 => $child_pid and
 		kill TERM => $child_pid or warn "kill $child_pid: $!";
 		return if $GD;
-		# TODO: kill timer
+		# MAYBE: kill timer
 		#my $murder_timer = AnyEvent->timer (
 		#	after => 2,
 		#	cb    => sub {
@@ -304,12 +336,14 @@ sub kill_child {
 		#);
 		
 		# reap process
-		my $kid_watcher; $kid_watcher = AnyEvent->child (
+		#print STDERR "start reaper $child_pid\n";
+		$KIDW{$child_pid} = AnyEvent->child (
 			pid => $child_pid,
 			cb  => sub {
 				# just hold on to this so it won't go away
+				#print STDERR "reaped $child_pid\n";
 				delete $TERM{$child_pid};
-				undef $kid_watcher;
+				delete $KIDW{$child_pid};
 				# cancel SIGKILL
 				#undef $murder_timer;
 			},
@@ -319,12 +353,24 @@ sub kill_child {
 	}
 }
 sub END {
-	for (keys %TERM) {
-        #print STDERR "END: kill $_\n";
-		# TODO: waitpid
-		kill 0 => $_ and
-		kill KILL => $_ or warn "kill $_ failed: $!";
+	my $GD = 0;
+	{
+		local $SIG{__WARN__} = sub { $GD = 1 if $_[0] =~ / during global destruction\.\s*$/ };
+		warn 'test';
 	}
+	#print STDERR "END $!/$? GD=$GD\n";
+	for (keys %TERM) {
+		delete $KIDW{$_};
+		#print STDERR "END kill $_\n";
+		kill 0 => $_ and do {
+			kill KILL => $_ or warn "kill $_ failed: $!";
+			#print STDERR "END waitpid $_\n";
+			my $wp = waitpid $_,0;
+			#print STDERR "END waitpid $_ = $wp\n";
+		};
+		#print STDERR "END $_ ($!/$?/${^CHILD_ERROR_NATIVE})\n";
+	}
+	undef $!;undef $?;
 }
 
 sub DESTROY {
@@ -333,6 +379,8 @@ sub DESTROY {
 
 sub _error {
 	my ($self, $error, $filename, $line, $fatal) = @_;
+	my $caller = '';
+	my @caller = ($filename,$line);
 	if ($fatal) {
 		delete $self->{tw};
 		delete $self->{rw};
@@ -341,7 +389,9 @@ sub _error {
 		
 		# for fatal errors call all enqueued callbacks with error
 		while (my $req = shift @{$self->{queue}}) {
-			local $@ = $error;
+			@caller = ($req->[1],$req->[2]) unless $caller;
+			$caller ||= " after $req->[1] line $req->[2],";
+			local $@ = "$error at $req->[1] line $req->[2].\n";
 			$req->[0]->($self);
 		}
 		$self->kill_child;
@@ -350,10 +400,15 @@ sub _error {
 	local $@ = $error;
 	
 	if ($self->{on_error}) {
-		$self->{on_error}($self, $filename, $line, $fatal)
+		$self->{on_error}($self, $error, $fatal, @caller);
 	}
 	else {
-		die "$error at $filename, line $line\n";
+		my $e = "$error$caller";
+		if ($fatal) {
+			die "$e at $filename, line $line\n";
+		} else {
+			warn "$e at $filename, line $line\n";
+		}
 	}
 }
 
@@ -425,7 +480,11 @@ sub do {
 
 =head1 AUTHOR
 
-Mons Anderson, C<< <mons at cpan.org> >>
+Mons Anderson, C<< <mons@cpan.org> >>
+
+=head1 ACKNOWLEDGEMENTS
+
+Thanks to Vladimir Timofeev C<< <vovkasm@cpan.org> >> for bugfixes and useful notes
 
 =head1 COPYRIGHT & LICENSE
 

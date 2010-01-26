@@ -14,8 +14,8 @@ sub test {my $self = shift;return "Result from $self->{some}: @_";}
 package main;
 
 use lib::abs "../lib";
-use Test::NoWarnings ();
-use Test::More;
+use Test::NoWarnings;
+use Test::More tests => 10+1;
 use AnyEvent::Impl::Perl;
 use AnyEvent 5;
 use AnyEvent::Worker;
@@ -77,6 +77,5 @@ $worker4->do( test => "SomeData" , sub {
 
 $cv->recv;
 
-Test::NoWarnings::had_no_warnings;
-
-done_testing( 11 );
+#Test::NoWarnings::had_no_warnings;
+#done_testing( 11 );

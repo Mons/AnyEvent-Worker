@@ -1,5 +1,5 @@
 ---
-abstract: 'The great new AnyEvent::Worker!'
+abstract: 'Manage blocking task in external process'
 author:
   - 'Mons Anderson <mons@cpan.org>'
 build_requires:
@@ -20,10 +20,19 @@ no_index:
   directory:
     - inc
     - t
+    - xt
+provides:
+  AnyEvent::Worker:
+    file: lib/AnyEvent/Worker.pm
+    version: 0.01
+  AnyEvent::Worker::Pool:
+    file: lib/AnyEvent/Worker/Pool.pm
+    version: 0.01
 requires:
   AnyEvent: 5
   Storable: 0
   common::sense: 2
+  perl: 5.6.0
 resources:
   license: http://dev.perl.org/licenses/
 version: 0.01
