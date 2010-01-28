@@ -2,7 +2,7 @@ use inc::Module::Install;
 
 name     'AnyEvent-Worker';
 all_from 'lib/AnyEvent/Worker.pm';
-version   my $v = '0.01';
+version   my $v = '0.01_1';
 author   'Mons Anderson <mons@cpan.org>';
 license  'perl';
 

@@ -79,7 +79,7 @@ use Errno ();
 use Fcntl ();
 use POSIX ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.01_1';
 our $FD_MAX = eval { POSIX::sysconf (&POSIX::_SC_OPEN_MAX) - 1 } || 1023;
 
 # Almost fully derived from AnyEvent::DBI
@@ -221,7 +221,7 @@ sub new {
 			}
 			elsif ($! != Errno::EAGAIN) {
 				# todo, caller?
-				$self->_error ("read error: $!", @caller, 1);
+				$self->_error ("read error ".(0+$!).": $!", @caller, 1);
 			}
 		});
 		
