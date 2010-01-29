@@ -79,7 +79,7 @@ use Errno ();
 use Fcntl ();
 use POSIX ();
 
-our $VERSION = '0.01_1';
+our $VERSION = '0.02';
 our $FD_MAX = eval { POSIX::sysconf (&POSIX::_SC_OPEN_MAX) - 1 } || 1023;
 
 # Almost fully derived from AnyEvent::DBI
@@ -163,7 +163,7 @@ sub new {
 	my ($class, $cb, %arg) = @_;
 	
 	my ($client, $server) = AnyEvent::Util::portable_socketpair
-		or croak "unable to create Anyevent::DBI communications pipe: $!";
+		or croak "unable to create Anyevent::Worker communications pipe: $!";
 	
 	my $self = bless \%arg, $class;
 	$self->{fh} = $client;
@@ -484,11 +484,13 @@ Mons Anderson, C<< <mons@cpan.org> >>
 
 =head1 ACKNOWLEDGEMENTS
 
+This module based on Marc Lehmann's L<AnyEvent::DBI>
+
 Thanks to Vladimir Timofeev C<< <vovkasm@cpan.org> >> for bugfixes and useful notes
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Mons Anderson, all rights reserved.
+Copyright 2009 Mons Anderson, based on Marc Lehmann's L<AnyEvent::DBI>
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

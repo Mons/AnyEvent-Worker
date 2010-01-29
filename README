@@ -68,11 +68,13 @@ AUTHOR
     Mons Anderson, "<mons@cpan.org>"
 
 ACKNOWLEDGEMENTS
+    This module based on Marc Lehmann's AnyEvent::DBI
+
     Thanks to Vladimir Timofeev "<vovkasm@cpan.org>" for bugfixes and useful
     notes
 
 COPYRIGHT & LICENSE
-    Copyright 2009 Mons Anderson, all rights reserved.
+    Copyright 2009 Mons Anderson, based on Marc Lehmann's AnyEvent::DBI
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
