@@ -26,7 +26,8 @@ $cv->begin;
 $worker1->do( test => "SomeData" , sub {
 	shift;
 	AnyEvent::Util::guard { $cv->end; };
-	like $@, qr/^unexpected eof/, 'test1: got error';
+	like $@, qr/^(unexpected eof|read error)/, 'test1: got error';
+	diag "$@" unless $@ =~ /^unexpected eof/;
 	is_deeply \@_, [], 'test1: no response';
 });
 
@@ -34,7 +35,8 @@ $cv->begin;
 $worker1->do( fail => "FailData" , sub {
 	shift;
 	AnyEvent::Util::guard { $cv->end; };
-	like $@, qr/^unexpected eof/, 'test2: got error';
+	like $@, qr/^(unexpected eof|read error)/, 'test2: got error';
+	diag "$@" unless $@ =~ /^unexpected eof/;
 	is_deeply \@_, [], 'test2: no response';
 });
 

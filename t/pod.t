@@ -5,10 +5,11 @@ use warnings;
 use lib::abs '../lib';
 
 use Test::More;
-use Test::If
-	sub { chdir lib::abs::path '..' },
-	'Test::Pod 1.22',
-;
+BEGIN {
+	chdir lib::abs::path '..' or plan skip_all => "$!";
+	eval q{use Test::Pod 1.22;1} or plan skip_all => "Not Test::Pod";
+	
+}
 
 all_pod_files_ok();
 exit 0;

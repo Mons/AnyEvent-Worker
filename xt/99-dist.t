@@ -2,7 +2,7 @@
 
 use lib::abs '../lib';
 use Test::More;
-use Test::If 'Test::Dist';
+use Test::Dist;
 use Test::NoWarnings;
 chdir lib::abs::path('..');
 

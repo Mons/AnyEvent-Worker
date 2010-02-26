@@ -4,7 +4,6 @@ author:
   - 'Mons Anderson <mons@cpan.org>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
-  Test::If: 0
   Test::More: 0
   Test::NoWarnings: 0
 configure_requires:
@@ -24,10 +23,10 @@ no_index:
 provides:
   AnyEvent::Worker:
     file: lib/AnyEvent/Worker.pm
-    version: 0.02
+    version: 0.03
   AnyEvent::Worker::Pool:
     file: lib/AnyEvent/Worker/Pool.pm
-    version: 0.02
+    version: 0.03
 requires:
   AnyEvent: 5
   Storable: 0
@@ -35,4 +34,4 @@ requires:
   perl: 5.6.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.02
+version: 0.03

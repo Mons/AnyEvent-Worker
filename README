@@ -4,25 +4,25 @@ NAME
 SYNOPSIS
         use AnyEvent 5;
         use AnyEvent::Worker;
-
+    
         my $worker1 = AnyEvent::Worker->new( [ 'Actual::Worker::Class' => @init_args ] );
         my $worker2 = AnyEvent::Worker->new( sub { return "Cb 1 @_"; } );
         my $worker3 = AnyEvent::Worker->new( {
-        class   => 'Actual::Worker::Class2',
-        new     => 'create', # alternative constructor
-        args    => [qw(arg1 arg2)],
+            class   => 'Actual::Worker::Class2',
+            new     => 'create', # alternative constructor
+            args    => [qw(arg1 arg2)],
         } );
-
+    
         # Invoke method `test' on Actual::Worker::Class with arguments @args
         $worker1->do( test => @args , sub {
-        return warn "Request died: $@" if $@;
-        warn "Received response: @_";
+            return warn "Request died: $@" if $@;
+            warn "Received response: @_";
         });
-
+    
         # Just call callback, passed to worker2 with arguments @args
         $worker2->do( @args , sub {
-        return warn "Request died: $@" if $@;
-        warn "Received response: @_";
+            return warn "Request died: $@" if $@;
+            warn "Received response: @_";
         });
 
 CONSTRUCTOR
@@ -72,10 +72,4 @@ ACKNOWLEDGEMENTS
 
     Thanks to Vladimir Timofeev "<vovkasm@cpan.org>" for bugfixes and useful
     notes
-
-COPYRIGHT & LICENSE
-    Copyright 2009 Mons Anderson, based on Marc Lehmann's AnyEvent::DBI
-
-    This program is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself.
 

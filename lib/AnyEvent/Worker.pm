@@ -79,7 +79,7 @@ use Errno ();
 use Fcntl ();
 use POSIX ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $FD_MAX = eval { POSIX::sysconf (&POSIX::_SC_OPEN_MAX) - 1 } || 1023;
 
 # Almost fully derived from AnyEvent::DBI
@@ -324,7 +324,7 @@ sub kill_child {
 		# send SIGKILL in two seconds
 		$TERM{$child_pid}++;
 		kill 0 => $child_pid and
-		kill TERM => $child_pid or warn "kill $child_pid: $!";
+		kill TERM => $child_pid or $!{ESRCH} or warn "kill $child_pid: $!";
 		return if $GD;
 		# MAYBE: kill timer
 		#my $murder_timer = AnyEvent->timer (
@@ -487,13 +487,6 @@ Mons Anderson, C<< <mons@cpan.org> >>
 This module based on Marc Lehmann's L<AnyEvent::DBI>
 
 Thanks to Vladimir Timofeev C<< <vovkasm@cpan.org> >> for bugfixes and useful notes
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2009 Mons Anderson, based on Marc Lehmann's L<AnyEvent::DBI>
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
 
 =cut
 
