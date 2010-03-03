@@ -4,10 +4,11 @@ $^O eq 'MSWin32' and die "Not ready tor MSWin32 yet";
 
 name     'AnyEvent-Worker';
 all_from 'lib/AnyEvent/Worker.pm';
-version   my $v = '0.03';
+version   my $v = '0.04';
 author   'Mons Anderson <mons@cpan.org>';
 license  'perl';
 
+build_requires 'lib::abs', '0.90';
 build_requires 'Test::More';
 build_requires 'Test::NoWarnings';
 

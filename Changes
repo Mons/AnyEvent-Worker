@@ -1,5 +1,8 @@
 Revision history for AnyEvent-Worker
 
+0.04    2010-03-03
+        Fix broken dependency.
+
 0.03    2010-02-27
         Fix broken tests.
 

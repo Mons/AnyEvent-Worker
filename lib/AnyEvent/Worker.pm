@@ -79,7 +79,7 @@ use Errno ();
 use Fcntl ();
 use POSIX ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our $FD_MAX = eval { POSIX::sysconf (&POSIX::_SC_OPEN_MAX) - 1 } || 1023;
 
 # Almost fully derived from AnyEvent::DBI
