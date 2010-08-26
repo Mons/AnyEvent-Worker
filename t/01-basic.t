@@ -78,4 +78,3 @@ $worker4->do( test => "SomeData" , sub {
 $cv->recv;
 
 #Test::NoWarnings::had_no_warnings;
-#done_testing( 11 );
