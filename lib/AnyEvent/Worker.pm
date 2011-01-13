@@ -130,7 +130,7 @@ sub serve_fh($$) {
 				};
 				# warn if $@;
 				$0 = "$O : idle";
-				$wbuf = pack "L/a*", Storable::freeze [ undef, ref $@ ? ("$@->[0]", $@->[1]) : ("$@", 0) ]
+				$wbuf = pack "L/a*", Storable::freeze [ undef, ref $@ eq 'ARRAY' ? ("$@->[0]", $@->[1]) : ("$@", 0) ]
 					if $@;
 				
 				#warn "<< response";
