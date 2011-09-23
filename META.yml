@@ -1,6 +1,7 @@
 ---
 abstract: 'Manage blocking task in external process'
 author:
+  - 'Mons Anderson, C<< <mons@cpan.org> >>'
   - 'Mons Anderson <mons@cpan.org>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
@@ -10,7 +11,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.91'
+generated_by: 'Module::Install version 1.00'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

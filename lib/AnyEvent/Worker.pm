@@ -79,7 +79,7 @@ use Errno ();
 use Fcntl ();
 use POSIX ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 our $FD_MAX = eval { POSIX::sysconf (&POSIX::_SC_OPEN_MAX) - 1 } || 1023;
 
 # Almost fully derived from AnyEvent::DBI
@@ -130,7 +130,7 @@ sub serve_fh($$) {
 				};
 				# warn if $@;
 				$0 = "$O : idle";
-				$wbuf = pack "L/a*", Storable::freeze [ undef, ref $@ eq 'ARRAY' ? ("$@->[0]", $@->[1]) : ("$@", 0) ]
+				$wbuf = pack "L/a*", Storable::freeze [ undef, ref $@ ? $@ : "$@" ]
 					if $@;
 				
 				#warn "<< response";
