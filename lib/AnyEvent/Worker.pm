@@ -79,7 +79,7 @@ use Errno ();
 use Fcntl ();
 use POSIX ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our $FD_MAX = eval { POSIX::sysconf (&POSIX::_SC_OPEN_MAX) - 1 } || 1023;
 
 # Almost fully derived from AnyEvent::DBI
@@ -135,7 +135,9 @@ sub serve_fh($$) {
 				
 				#warn "<< response";
 				for (my $ofs = 0; $ofs < length $wbuf; ) {
-					$ofs += (my $wr = syswrite $fh, substr $wbuf, $ofs or die "unable to write results");
+					my $wr = syswrite $fh, $wbuf, length($wbuf), $ofs;
+					defined $wr or $!{EINTR} or die "unable to write results: $!";
+					$ofs += $wr;
 				}
 			}
 		}
@@ -164,6 +166,8 @@ sub new {
 	
 	my ($client, $server) = AnyEvent::Util::portable_socketpair
 		or croak "unable to create Anyevent::Worker communications pipe: $!";
+	binmode $client, ':raw';
+	binmode $server, ':raw';
 	
 	my $self = bless \%arg, $class;
 	$self->{fh} = $client;

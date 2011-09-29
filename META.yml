@@ -25,10 +25,9 @@ no_index:
 provides:
   AnyEvent::Worker:
     file: lib/AnyEvent/Worker.pm
-    version: 0.04
+    version: 0.06
   AnyEvent::Worker::Pool:
     file: lib/AnyEvent/Worker/Pool.pm
-    version: 0.04
 requires:
   AnyEvent: 5
   Storable: 0
@@ -36,4 +35,4 @@ requires:
   perl: 5.6.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.04
+version: 0.06

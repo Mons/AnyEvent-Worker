@@ -5,7 +5,7 @@ use warnings;
 use strict;
 }x;
 
-our $VERSION = '0.02';
+#our $VERSION = '0.06';
 use AnyEvent::Worker;
 
 =head1 NAME
